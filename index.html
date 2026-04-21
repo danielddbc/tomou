@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tomoa — Nunca mais esqueça seu remédio</title>
+  <title>Tomou? — Garantimos que sim.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital@0;1&display=swap" rel="stylesheet" />
@@ -32,11 +32,10 @@
       <!-- Painel esquerdo — branding -->
       <div class="auth-brand">
         <div class="auth-brand-inner">
-          <div class="brand-logo-wrap">
-            <span class="brand-logo-icon">💊</span>
+          <div class="brand-logo-img-wrap">
+            <img src="IMG_4233.JPG" alt="Tomou? Logo" class="brand-logo-img" id="auth-logo-img" />
           </div>
-          <h1 class="brand-name">Tomoa</h1>
-          <p class="brand-tagline">A gente garante<br>que você vai tomar.</p>
+          <p class="brand-tagline">Garantimos que sim.</p>
           <div class="brand-features">
             <div class="brand-feature">
               <span class="feat-icon">🔔</span>
@@ -124,8 +123,7 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-logo">
-        <span class="sidebar-logo-icon">💊</span>
-        <span class="sidebar-logo-text">Tomoa</span>
+        <img src="IMG_4233.JPG" alt="Tomou?" class="sidebar-logo-img" id="sidebar-logo-img" />
       </div>
       <nav class="sidebar-nav">
         <button class="nav-item active" data-view="home">
@@ -158,8 +156,7 @@
     <!-- Mobile top bar -->
     <header class="mobile-header">
       <div class="mobile-logo">
-        <span>💊</span>
-        <span>Tomoa</span>
+        <img src="IMG_4233.JPG" alt="Tomou?" class="mobile-logo-img" id="mobile-logo-img" />
       </div>
       <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
     </header>
@@ -260,6 +257,7 @@
             </div>
           </div>
 
+          <!-- Nome do remédio -->
           <div class="form-group">
             <label for="rem-nome">Nome do remédio</label>
             <div class="input-wrap">
@@ -268,14 +266,111 @@
             </div>
           </div>
 
+          <!-- Frequência -->
           <div class="form-group">
-            <label for="rem-horario">Horário de tomar</label>
-            <div class="input-wrap">
-              <span class="input-icon">⏰</span>
-              <input type="datetime-local" id="rem-horario" />
+            <label>Frequência de uso</label>
+            <div class="freq-options">
+              <label class="freq-option" id="freq-opt-continuo">
+                <input type="radio" name="rem-freq" value="continuo" id="freq-continuo" checked />
+                <div class="freq-option-inner">
+                  <span class="freq-icon">🔄</span>
+                  <div>
+                    <strong>Uso contínuo</strong>
+                    <small>Recorrente, todo dia ou dias específicos</small>
+                  </div>
+                </div>
+              </label>
+              <label class="freq-option" id="freq-opt-unico">
+                <input type="radio" name="rem-freq" value="unico" id="freq-unico" />
+                <div class="freq-option-inner">
+                  <span class="freq-icon">1️⃣</span>
+                  <div>
+                    <strong>Uso único</strong>
+                    <small>Apenas uma vez em data específica</small>
+                  </div>
+                </div>
+              </label>
             </div>
           </div>
 
+          <!-- Bloco: Uso único -->
+          <div id="bloco-unico" class="form-bloco hidden">
+            <div class="form-group">
+              <label for="rem-horario">Data e horário</label>
+              <div class="input-wrap">
+                <span class="input-icon">⏰</span>
+                <input type="datetime-local" id="rem-horario" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloco: Uso contínuo -->
+          <div id="bloco-continuo" class="form-bloco">
+
+            <!-- Dias da semana -->
+            <div class="form-group">
+              <label>Dias da semana</label>
+              <div class="dias-grid">
+                <label class="dia-chip" data-dia="todos">
+                  <input type="checkbox" id="dia-todos" value="todos" />
+                  <span>Todos</span>
+                </label>
+                <label class="dia-chip" data-dia="seg">
+                  <input type="checkbox" id="dia-seg" value="seg" />
+                  <span>Seg</span>
+                </label>
+                <label class="dia-chip" data-dia="ter">
+                  <input type="checkbox" id="dia-ter" value="ter" />
+                  <span>Ter</span>
+                </label>
+                <label class="dia-chip" data-dia="qua">
+                  <input type="checkbox" id="dia-qua" value="qua" />
+                  <span>Qua</span>
+                </label>
+                <label class="dia-chip" data-dia="qui">
+                  <input type="checkbox" id="dia-qui" value="qui" />
+                  <span>Qui</span>
+                </label>
+                <label class="dia-chip" data-dia="sex">
+                  <input type="checkbox" id="dia-sex" value="sex" />
+                  <span>Sex</span>
+                </label>
+                <label class="dia-chip" data-dia="sab">
+                  <input type="checkbox" id="dia-sab" value="sab" />
+                  <span>Sáb</span>
+                </label>
+                <label class="dia-chip" data-dia="dom">
+                  <input type="checkbox" id="dia-dom" value="dom" />
+                  <span>Dom</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quantidade de vezes por dia -->
+            <div class="form-group">
+              <label for="rem-vezes">Quantas vezes por dia?</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔢</span>
+                <select id="rem-vezes">
+                  <option value="1">1 vez ao dia</option>
+                  <option value="2">2 vezes ao dia</option>
+                  <option value="3">3 vezes ao dia</option>
+                  <option value="4">4 vezes ao dia</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Horários dinâmicos -->
+            <div class="form-group" id="horarios-dinamicos-wrap">
+              <label>Horários</label>
+              <div id="horarios-dinamicos" class="horarios-list">
+                <!-- Gerado dinamicamente pelo JS -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Dosagem (mantida) -->
           <div class="form-group">
             <label for="rem-dosagem">Dosagem <span class="optional">(opcional)</span></label>
             <div class="input-wrap">

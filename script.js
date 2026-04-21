@@ -419,13 +419,31 @@ function createRemedioCard(rem, idx) {
   const statusClass = confirmado ? 'status-confirmado' : 'status-pendente';
   const statusText  = confirmado ? 'Confirmado' : 'Pendente';
 
+  // Smart display: tipo + dias
+  const tipo = rem.tipo || 'unico';
+  const dias = rem.dias || '';
+  const horarios = rem.horarios || [];
+  let horariosDisplay = '';
+  if (horarios.length > 1) {
+    horariosDisplay = horarios.join(' · ');
+  } else if (tipo === 'unico') {
+    horariosDisplay = formatDateTime(horario);
+  } else {
+    horariosDisplay = horario ? horario.substring(0,5) : '—';
+  }
+  const tipoTag = tipo === 'continuo'
+    ? '<span class="remedio-dosagem" style="background:#EFF6FF;color:#3B82F6;">🔄 Contínuo</span>'
+    : '<span class="remedio-dosagem" style="background:#F5F3FF;color:#7C3AED;">1️⃣ Uso único</span>';
+
   card.innerHTML = `
     <div class="remedio-icon">💊</div>
     <div class="remedio-info">
       <div class="remedio-name">${escapeHtml(nome)}</div>
       <div class="remedio-meta">
-        <span class="remedio-time">⏰ ${formatDateTime(horario)}</span>
-        ${dosagem ? `<span class="remedio-dosagem">${escapeHtml(dosagem)}</span>` : ''}
+        <span class="remedio-time">⏰ ${escapeHtml(horariosDisplay)}</span>
+        ${tipoTag}
+        ${dias ? `<span class="remedio-dosagem">📅 ${escapeHtml(dias)}</span>` : ''}
+        ${dosagem ? `<span class="remedio-dosagem">⚖️ ${escapeHtml(dosagem)}</span>` : ''}
         <span class="remedio-status ${statusClass}">
           <span class="status-dot"></span>
           ${statusText}
@@ -511,21 +529,170 @@ function setupAddForm() {
     btn.disabled = false;
   }
 
-  // Seta horário default para agora + 10 min
+  // Seta horário default para agora + 10 min (para uso único)
   const now = new Date(Date.now() + 10 * 60000);
   const pad = n => String(n).padStart(2, '0');
   const defaultVal = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
   const horarioInput = document.getElementById('rem-horario');
-  if (!horarioInput.value) horarioInput.value = defaultVal;
+  if (horarioInput && !horarioInput.value) horarioInput.value = defaultVal;
+
+  // Inicializa smart form (frequência, dias, horários dinâmicos)
+  initSmartForm();
+}
+
+// ═══════════════════════════════════════════════════
+// SMART FORM — Frequência, Dias, Horários Dinâmicos
+// ═══════════════════════════════════════════════════
+
+function initSmartForm() {
+  const freqContinuo = document.getElementById('freq-continuo');
+  const freqUnico    = document.getElementById('freq-unico');
+  const blocoContinuo = document.getElementById('bloco-continuo');
+  const blocoUnico    = document.getElementById('bloco-unico');
+  const remVezes      = document.getElementById('rem-vezes');
+  const diaTodos      = document.getElementById('dia-todos');
+
+  if (!freqContinuo) return; // guard
+
+  // Função que mostra/esconde blocos com base na frequência selecionada
+  function updateFreqDisplay() {
+    const isContinuo = freqContinuo.checked;
+    if (isContinuo) {
+      blocoContinuo.classList.remove('hidden');
+      blocoUnico.classList.add('hidden');
+    } else {
+      blocoContinuo.classList.add('hidden');
+      blocoUnico.classList.remove('hidden');
+    }
+  }
+
+  // Evento de mudança de frequência
+  freqContinuo.addEventListener('change', updateFreqDisplay);
+  freqUnico.addEventListener('change', updateFreqDisplay);
+
+  // Inicializa estado correto
+  updateFreqDisplay();
+
+  // Horários dinâmicos: ao mudar "vezes por dia"
+  remVezes.addEventListener('change', renderHorariosDinamicos);
+  renderHorariosDinamicos(); // render inicial com 1 campo
+
+  // "Todos os dias" — marca/desmarca todos
+  diaTodos.addEventListener('change', function() {
+    const diasIndividuais = ['dia-seg','dia-ter','dia-qua','dia-qui','dia-sex','dia-sab','dia-dom'];
+    diasIndividuais.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.checked = diaTodos.checked;
+      // Atualiza visual do chip
+      const chip = el?.closest('.dia-chip');
+      if (chip) chip.classList.toggle('checked', diaTodos.checked);
+    });
+  });
+
+  // Se um dia individual for desmarcado, desmarca "todos"
+  ['dia-seg','dia-ter','dia-qua','dia-qui','dia-sex','dia-sab','dia-dom'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', function() {
+        if (!this.checked && diaTodos.checked) {
+          diaTodos.checked = false;
+        }
+      });
+    }
+  });
+}
+
+function renderHorariosDinamicos() {
+  const vezes = parseInt(document.getElementById('rem-vezes')?.value || '1', 10);
+  const container = document.getElementById('horarios-dinamicos');
+  if (!container) return;
+
+  // Salva valores existentes para não perder o que o usuário digitou
+  const existing = Array.from(container.querySelectorAll('input[type="time"]'))
+    .map(inp => inp.value);
+
+  container.innerHTML = '';
+
+  const labels = ['1º horário', '2º horário', '3º horário', '4º horário'];
+  const defaults = ['08:00', '14:00', '20:00', '23:00'];
+
+  for (let i = 0; i < vezes; i++) {
+    const item = document.createElement('div');
+    item.className = 'horario-item';
+    item.style.animationDelay = `${i * 60}ms`;
+    item.innerHTML = `
+      <span class="horario-label">${labels[i] || (i+1)+'º'}</span>
+      <div class="input-wrap">
+        <span class="input-icon">⏰</span>
+        <input type="time" id="rem-time-${i}" value="${existing[i] || defaults[i]}" required />
+      </div>
+    `;
+    container.appendChild(item);
+  }
+}
+
+function getSmartFormData() {
+  const freqUnico = document.getElementById('freq-unico')?.checked;
+
+  if (freqUnico) {
+    const horario = document.getElementById('rem-horario')?.value || '';
+    return { tipo: 'unico', horario, dias: '', vezes: 1, horarios: [horario] };
+  }
+
+  // Contínuo
+  const diasIds = ['dia-seg','dia-ter','dia-qua','dia-qui','dia-sex','dia-sab','dia-dom'];
+  const nomesDias = {'dia-seg':'Segunda','dia-ter':'Terça','dia-qua':'Quarta','dia-qui':'Quinta','dia-sex':'Sexta','dia-sab':'Sábado','dia-dom':'Domingo'};
+  const diasSelecionados = diasIds
+    .filter(id => document.getElementById(id)?.checked)
+    .map(id => nomesDias[id]);
+
+  const vezes = parseInt(document.getElementById('rem-vezes')?.value || '1', 10);
+  const horarios = [];
+  for (let i = 0; i < vezes; i++) {
+    const val = document.getElementById(`rem-time-${i}`)?.value || '';
+    if (val) horarios.push(val);
+  }
+
+  // Para compatibilidade com backend: usa primeiro horário como "horario" principal
+  const horarioPrincipal = horarios[0] || '';
+
+  return {
+    tipo: 'continuo',
+    horario: horarioPrincipal,
+    dias: diasSelecionados.join(', '),
+    vezes,
+    horarios,
+  };
+}
+
+function validateSmartForm() {
+  const freqUnico = document.getElementById('freq-unico')?.checked;
+
+  if (freqUnico) {
+    const horario = document.getElementById('rem-horario')?.value;
+    if (!horario) { toast('Informe a data e horário.', 'error'); return false; }
+    return true;
+  }
+
+  // Contínuo: pelo menos um dia
+  const diasIds = ['dia-seg','dia-ter','dia-qua','dia-qui','dia-sex','dia-sab','dia-dom'];
+  const algumDia = diasIds.some(id => document.getElementById(id)?.checked);
+  if (!algumDia) { toast('Selecione ao menos um dia da semana.', 'error'); return false; }
+
+  // Pelo menos um horário preenchido
+  const vezes = parseInt(document.getElementById('rem-vezes')?.value || '1', 10);
+  const algumHorario = Array.from({length: vezes}, (_, i) => document.getElementById(`rem-time-${i}`)?.value).some(Boolean);
+  if (!algumHorario) { toast('Informe ao menos um horário.', 'error'); return false; }
+
+  return true;
 }
 
 async function handleAddRemedio() {
   const nome = document.getElementById('rem-nome').value.trim();
-  const horario = document.getElementById('rem-horario').value;
   const dosagem = document.getElementById('rem-dosagem').value.trim();
 
   if (!nome) { toast('Informe o nome do remédio.', 'error'); return; }
-  if (!horario) { toast('Informe o horário.', 'error'); return; }
+  if (!validateSmartForm()) return;
 
   // Verificar limite do plano
   if (state.remedios.length >= FREE_PLAN_LIMIT && state.user?.plano !== 'premium') {
@@ -534,27 +701,37 @@ async function handleAddRemedio() {
     return;
   }
 
+  const smartData = getSmartFormData();
   const btn = document.getElementById('btn-add-remedio');
   btn.disabled = true;
   btn.querySelector('.btn-text').textContent = 'Salvando…';
   showLoading();
 
   try {
+    // Monta payload compatível com backend existente
     const params = {
       action: 'addRemedio',
       user_id: state.user.id,
       nome,
-      horario,
+      horario: smartData.horario,  // horario principal (compatível com backend)
+      tipo: smartData.tipo,
+      dias: smartData.dias,
+      vezes: smartData.vezes,
+      horarios: smartData.horarios.join(','),
     };
     if (dosagem) params.dosagem = dosagem;
 
     const data = await apiCall(params);
 
     if (data && (data.success || data.id || data.remedio_id || data.ok)) {
-      // Adiciona ao estado local com dados retornados
       const newRem = {
         id: data.id || data.remedio_id || data.data?.id || `local_${Date.now()}`,
-        nome, horario, dosagem,
+        nome,
+        horario: smartData.horario,
+        horarios: smartData.horarios,
+        tipo: smartData.tipo,
+        dias: smartData.dias,
+        dosagem,
         confirmado: false, status: 'pendente',
       };
       state.remedios.push(newRem);
@@ -567,11 +744,10 @@ async function handleAddRemedio() {
     } else if (data && data.message) {
       toast(data.message, 'error');
     } else {
-      // Fallback: adiciona localmente
-      addRemedioLocally(nome, horario, dosagem);
+      addRemedioLocally(nome, smartData, dosagem);
     }
   } catch (err) {
-    addRemedioLocally(nome, horario, dosagem);
+    addRemedioLocally(nome, smartData, dosagem);
   } finally {
     btn.disabled = false;
     btn.querySelector('.btn-text').textContent = 'Salvar remédio';
@@ -579,10 +755,15 @@ async function handleAddRemedio() {
   }
 }
 
-function addRemedioLocally(nome, horario, dosagem) {
+function addRemedioLocally(nome, smartData, dosagem) {
   const newRem = {
     id: `local_${Date.now()}`,
-    nome, horario, dosagem,
+    nome,
+    horario: smartData.horario,
+    horarios: smartData.horarios,
+    tipo: smartData.tipo,
+    dias: smartData.dias,
+    dosagem,
     confirmado: false, status: 'pendente',
   };
   state.remedios.push(newRem);
@@ -595,10 +776,21 @@ function addRemedioLocally(nome, horario, dosagem) {
 }
 
 function clearAddForm() {
-  document.getElementById('rem-nome').value = '';
-  document.getElementById('rem-horario').value = '';
-  document.getElementById('rem-dosagem').value = '';
+  const nomeEl = document.getElementById('rem-nome');
+  const dosEl  = document.getElementById('rem-dosagem');
+  if (nomeEl) nomeEl.value = '';
+  if (dosEl)  dosEl.value  = '';
+  const horEl = document.getElementById('rem-horario');
+  if (horEl) horEl.value = '';
   document.getElementById('limit-warning').classList.add('hidden');
+  // Reset frequência para contínuo
+  const freqCont = document.getElementById('freq-continuo');
+  if (freqCont) { freqCont.checked = true; freqCont.dispatchEvent(new Event('change')); }
+  // Limpa dias
+  ['dia-todos','dia-seg','dia-ter','dia-qua','dia-qui','dia-sex','dia-sab','dia-dom'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = false;
+  });
 }
 
 // ═══════════════════════════════════════════════════
@@ -679,5 +871,60 @@ function init() {
   }
 }
 
+// ═══════════════════════════════════════════════════
+// LOGO CROP — Mostra apenas a parte superior do logo
+// (o arquivo é um sheet com 3 variações; queremos só a principal)
+// ═══════════════════════════════════════════════════
+
+function cropLogos() {
+  // O logo original é 2048x2048 com 3 versões dispostas assim:
+  // Topo: logo grande (0-52% da altura), centralizado (20-80% da largura)
+  // Usamos um canvas para extrair e substituir cada <img>
+  const sourceImg = new Image();
+  sourceImg.crossOrigin = 'anonymous';
+  sourceImg.onload = function() {
+    const sw = sourceImg.naturalWidth;
+    const sh = sourceImg.naturalHeight;
+
+    // Crop coordinates: top main logo
+    const sx = Math.floor(sw * 0.18);
+    const sy = 0;
+    const sWidth  = Math.floor(sw * 0.64);
+    const sHeight = Math.floor(sh * 0.50);
+
+    function makeCropped(destW, destH) {
+      const canvas = document.createElement('canvas');
+      canvas.width  = destW;
+      canvas.height = destH;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(sourceImg, sx, sy, sWidth, sHeight, 0, 0, destW, destH);
+      return canvas.toDataURL('image/png');
+    }
+
+    // Sidebar logo
+    const sidebarImg = document.getElementById('sidebar-logo-img');
+    if (sidebarImg) sidebarImg.src = makeCropped(160, Math.round(160 * sHeight / sWidth));
+
+    // Mobile logo
+    const mobileImg = document.getElementById('mobile-logo-img');
+    if (mobileImg) mobileImg.src = makeCropped(120, Math.round(120 * sHeight / sWidth));
+
+    // Auth logo (on brand panel — keep inverted white version)
+    const authImg = document.getElementById('auth-logo-img');
+    if (authImg) authImg.src = makeCropped(240, Math.round(240 * sHeight / sWidth));
+  };
+  sourceImg.onerror = function() {
+    // If image load fails (e.g. CORS), gracefully show text fallback
+    ['sidebar-logo-img', 'mobile-logo-img', 'auth-logo-img'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+  };
+  sourceImg.src = 'IMG_4233.JPG';
+}
+
 // Aguarda DOM pronto
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  cropLogos();
+});
