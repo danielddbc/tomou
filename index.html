@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tomoa — Nunca mais esqueça seu remédio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       TOAST CONTAINER
+  ════════════════════════════════════════════ -->
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- ═══════════════════════════════════════════
+       LOADING OVERLAY
+  ════════════════════════════════════════════ -->
+  <div id="loading-overlay" class="hidden">
+    <div class="spinner-ring"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN: AUTH (Login / Cadastro)
+  ════════════════════════════════════════════ -->
+  <div id="screen-auth" class="screen active">
+    <div class="auth-layout">
+
+      <!-- Painel esquerdo — branding -->
+      <div class="auth-brand">
+        <div class="auth-brand-inner">
+          <div class="brand-logo-wrap">
+            <span class="brand-logo-icon">💊</span>
+          </div>
+          <h1 class="brand-name">Tomoa</h1>
+          <p class="brand-tagline">A gente garante<br>que você vai tomar.</p>
+          <div class="brand-features">
+            <div class="brand-feature">
+              <span class="feat-icon">🔔</span>
+              <span>Lembretes inteligentes e insistentes</span>
+            </div>
+            <div class="brand-feature">
+              <span class="feat-icon">✅</span>
+              <span>Confirmação de tomada em um toque</span>
+            </div>
+            <div class="brand-feature">
+              <span class="feat-icon">📊</span>
+              <span>Histórico completo do seu tratamento</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painel direito — formulário -->
+      <div class="auth-form-panel">
+        <div class="auth-form-card">
+
+          <!-- Tabs -->
+          <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">Entrar</button>
+            <button class="auth-tab" data-tab="cadastro">Criar conta</button>
+          </div>
+
+          <!-- Tab: Login -->
+          <div id="tab-login" class="auth-tab-content active">
+            <div class="form-header">
+              <h2>Bem-vindo de volta</h2>
+              <p>Informe seu telefone para continuar</p>
+            </div>
+            <div class="form-group">
+              <label for="login-phone">Telefone</label>
+              <div class="input-wrap">
+                <span class="input-icon">📱</span>
+                <input type="tel" id="login-phone" placeholder="(11) 99999-9999" maxlength="15" />
+              </div>
+            </div>
+            <button class="btn-primary full" id="btn-login">
+              <span class="btn-text">Entrar</span>
+              <span class="btn-icon">→</span>
+            </button>
+            <p class="auth-switch">Não tem conta? <button class="link-btn" data-switch="cadastro">Crie agora</button></p>
+          </div>
+
+          <!-- Tab: Cadastro -->
+          <div id="tab-cadastro" class="auth-tab-content">
+            <div class="form-header">
+              <h2>Seu cuidado começa aqui</h2>
+              <p>Crie sua conta gratuita em segundos</p>
+            </div>
+            <div class="form-group">
+              <label for="cad-name">Seu nome</label>
+              <div class="input-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" id="cad-name" placeholder="Como posso te chamar?" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="cad-phone">Telefone</label>
+              <div class="input-wrap">
+                <span class="input-icon">📱</span>
+                <input type="tel" id="cad-phone" placeholder="(11) 99999-9999" maxlength="15" />
+              </div>
+            </div>
+            <button class="btn-primary full" id="btn-cadastro">
+              <span class="btn-text">Começar agora — é grátis</span>
+              <span class="btn-icon">→</span>
+            </button>
+            <p class="auth-switch">Já tem conta? <button class="link-btn" data-switch="login">Entrar</button></p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN: DASHBOARD
+  ════════════════════════════════════════════ -->
+  <div id="screen-dashboard" class="screen hidden">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <span class="sidebar-logo-icon">💊</span>
+        <span class="sidebar-logo-text">Tomoa</span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="home">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Início</span>
+        </button>
+        <button class="nav-item" data-view="add">
+          <span class="nav-icon">➕</span>
+          <span class="nav-label">Adicionar</span>
+        </button>
+        <button class="nav-item" data-view="history">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Histórico</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-mini">
+          <div class="user-avatar" id="sidebar-avatar">U</div>
+          <div class="user-mini-info">
+            <span class="user-mini-name" id="sidebar-name">Usuário</span>
+            <span class="user-mini-plan">Plano Free</span>
+          </div>
+        </div>
+        <button class="btn-icon-only" id="btn-logout" title="Sair">
+          <span>↪</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Mobile top bar -->
+    <header class="mobile-header">
+      <div class="mobile-logo">
+        <span>💊</span>
+        <span>Tomoa</span>
+      </div>
+      <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+    </header>
+
+    <!-- Mobile nav overlay -->
+    <div class="mobile-nav-overlay hidden" id="mobile-nav-overlay">
+      <div class="mobile-nav-panel">
+        <div class="mobile-nav-header">
+          <span class="mobile-nav-title">Menu</span>
+          <button id="mobile-nav-close">✕</button>
+        </div>
+        <button class="nav-item" data-view="home" data-mobile="true">🏠 Início</button>
+        <button class="nav-item" data-view="add" data-mobile="true">➕ Adicionar remédio</button>
+        <button class="nav-item" data-view="history" data-mobile="true">📋 Histórico</button>
+        <button class="nav-item danger" id="btn-logout-mobile">↪ Sair</button>
+      </div>
+    </div>
+
+    <!-- Main content area -->
+    <main class="main-content">
+
+      <!-- ── VIEW: HOME ─────────────────────────── -->
+      <div id="view-home" class="view active">
+
+        <!-- Hero greeting -->
+        <div class="greeting-section">
+          <div class="greeting-text">
+            <p class="greeting-sub">Bom dia 👋</p>
+            <h2 class="greeting-name" id="greeting-name">Usuário</h2>
+          </div>
+          <div class="plan-badge" id="plan-badge">
+            <span class="plan-icon">⭐</span>
+            <span>Plano Free</span>
+          </div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-val" id="stat-total">0</div>
+            <div class="stat-lbl">Remédios</div>
+          </div>
+          <div class="stat-card accent">
+            <div class="stat-val" id="stat-pendentes">0</div>
+            <div class="stat-lbl">Pendentes</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-val" id="stat-confirmados">0</div>
+            <div class="stat-lbl">Confirmados</div>
+          </div>
+        </div>
+
+        <!-- Upgrade banner (shown when limit reached) -->
+        <div class="upgrade-banner hidden" id="upgrade-banner">
+          <div class="upgrade-info">
+            <span class="upgrade-icon">⚡</span>
+            <div>
+              <strong>Limite do plano gratuito atingido</strong>
+              <p>Você tem 2 de 2 remédios. Faça upgrade para adicionar mais.</p>
+            </div>
+          </div>
+          <button class="btn-upgrade">Upgrade por R$9,90/mês →</button>
+        </div>
+
+        <!-- Remedios list -->
+        <div class="section-header">
+          <h3 class="section-title">Seus remédios</h3>
+          <button class="btn-text-green" data-view="add" id="btn-add-shortcut">+ Adicionar</button>
+        </div>
+
+        <div id="remedios-list" class="remedios-list">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Empty state -->
+        <div id="empty-state" class="empty-state hidden">
+          <div class="empty-icon">💊</div>
+          <h4>Nenhum remédio cadastrado</h4>
+          <p>Adicione seu primeiro remédio e nunca mais esqueça de tomar.</p>
+          <button class="btn-primary" data-view="add">Adicionar remédio</button>
+        </div>
+
+      </div>
+
+      <!-- ── VIEW: ADD REMÉDIO ───────────────────── -->
+      <div id="view-add" class="view hidden">
+        <div class="view-header">
+          <button class="btn-back" data-view="home">← Voltar</button>
+          <h2 class="view-title">Adicionar remédio</h2>
+        </div>
+
+        <div class="form-card">
+          <div class="form-card-header">
+            <span class="form-card-icon">💊</span>
+            <div>
+              <h3>Novo lembrete</h3>
+              <p>Preencha os dados do medicamento</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="rem-nome">Nome do remédio</label>
+            <div class="input-wrap">
+              <span class="input-icon">💊</span>
+              <input type="text" id="rem-nome" placeholder="Ex: Losartana 50mg" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="rem-horario">Horário de tomar</label>
+            <div class="input-wrap">
+              <span class="input-icon">⏰</span>
+              <input type="datetime-local" id="rem-horario" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="rem-dosagem">Dosagem <span class="optional">(opcional)</span></label>
+            <div class="input-wrap">
+              <span class="input-icon">⚖️</span>
+              <input type="text" id="rem-dosagem" placeholder="Ex: 1 comprimido" />
+            </div>
+          </div>
+
+          <button class="btn-primary full" id="btn-add-remedio">
+            <span class="btn-text">Salvar remédio</span>
+            <span class="btn-icon">✓</span>
+          </button>
+
+          <div class="limit-warning hidden" id="limit-warning">
+            <span>⚠️</span>
+            <div>
+              <strong>Limite atingido</strong>
+              <p>O plano gratuito permite até 2 remédios. <button class="link-btn green">Faça upgrade por R$9,90/mês</button></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VIEW: HISTORY ──────────────────────── -->
+      <div id="view-history" class="view hidden">
+        <div class="view-header">
+          <button class="btn-back" data-view="home">← Voltar</button>
+          <h2 class="view-title">Histórico</h2>
+        </div>
+        <div class="history-note">
+          <span>📋</span>
+          <p>Todos os seus remédios cadastrados e seus status de confirmação.</p>
+        </div>
+        <div id="history-list" class="remedios-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
